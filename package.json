@@ -1,0 +1,17 @@
+{
+  "name": "acala-tvl",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node ./src/index.js"
+  },
+  "dependencies": {
+    "@acala-network/api": "^4.0.1",
+    "@acala-network/sdk": "^4.0.1",
+    "@acala-network/sdk-core": "^4.0.1",
+    "@acala-network/sdk-wallet": "^4.0.1",
+    "@polkadot/api": "^7.10.1",
+    "coingecko-api": "^1.0.10"
+  }
+}
