@@ -3,11 +3,11 @@ const Tvl = require("./Tvl");
 
 const tvl = async (chain) => {
   const api = await getApi(chain);
-  const entries = await api.query.loans.positions.entries();
+  const positions = await api.query.loans.positions.entries();
 
   const totalTvl = new Tvl(api);
 
-  for (const [keys, position] of entries) {
+  for (const [keys, position] of positions) {
     let [currencyId, _address] = keys.toHuman();
 
     let collateral = position.toJSON().collateral;
