@@ -1,6 +1,7 @@
 const { Token } = require("@acala-network/sdk-core");
+const { FixedPointNumber } = require("@acala-network/sdk-core");
 
-const ACALA_LEASE_BLOCK = 16934400;
+const ACALA_LEASE_BLOCK = 17_856_000;
 
 const DECIMALS = {
   acala: {
@@ -26,35 +27,28 @@ const DECIMALS = {
   },
 };
 
-let liquidConversionRate = null;
-
-const setLiquidConversionRate = async (api) => {
+const getLiquidConversionRate = async (api) => {
   const liquidCurrencyId = api.consts.homa.liquidCurrencyId;
 
-  const toBond = Number(await api.query.homa.toBondPool());
-  const bonded = Number(
-    (await api.query.homa.stakingLedgers(0)).toJSON().bonded
+  const toBond = new FixedPointNumber(
+    Number(await api.query.homa.toBondPool())
+  );
+  const bonded = new FixedPointNumber(
+    Number((await api.query.homa.stakingLedgers(0)).toJSON().bonded)
   );
 
-  const totalStaked = toBond + bonded;
+  const totalStaked = toBond.add(bonded);
 
-  const voidLiquid = Number(await api.query.homa.totalVoidLiquid());
-  const totalActive = Number(
-    await api.query.tokens.totalIssuance(liquidCurrencyId)
+  const voidLiquid = new FixedPointNumber(
+    Number(await api.query.homa.totalVoidLiquid())
+  );
+  const totalActive = new FixedPointNumber(
+    Number(await api.query.tokens.totalIssuance(liquidCurrencyId))
   );
 
-  const totalIssued = voidLiquid + totalActive;
+  const totalIssued = voidLiquid.add(totalActive);
 
-  liquidConversionRate = totalStaked / totalIssued;
-};
-
-const getLiquidConversionRate = async (api) => {
-  if (liquidConversionRate) {
-    return liquidConversionRate;
-  }
-
-  await setLiquidConversionRate(api);
-  return liquidConversionRate;
+  return totalStaked.div(totalIssued);
 };
 
 const tokenAmountToHuman = async (api, chain, tokenSymbol, amount) => {
@@ -64,22 +58,24 @@ const tokenAmountToHuman = async (api, chain, tokenSymbol, amount) => {
     console.error(`Acala/Karura: No decimals entry for ${tokenSymbol}`);
   } else {
     if (tokenSymbol === "LKSM" || tokenSymbol === "LDOT") {
-      amount = amount * (await getLiquidConversionRate(api));
+      amount = amount.mul(await getLiquidConversionRate(api));
       tokenDecimals = DECIMALS[chain][tokenSymbol.slice(1)];
     }
 
-    return amount / 10 ** tokenDecimals;
+    return amount.div(new FixedPointNumber(10 ** tokenDecimals)).toNumber();
   }
 };
 
 const crowdloanDotToDot = (api, currentRelayBlockNumber) => {
   const rewardRatePerRelaychainBlock =
-    api.consts.prices.rewardRatePerRelaychainBlock.toNumber() || 0;
+    api.consts?.prices?.rewardRatePerRelaychainBlock?.toNumber() || 0;
   const leaseBlockNumber = ACALA_LEASE_BLOCK;
-  const discount =
-    1 /
-    (1 + rewardRatePerRelaychainBlock / 10 ** 18) **
-      Math.max(leaseBlockNumber - currentRelayBlockNumber, 0);
+  const discount = FixedPointNumber.ONE.div(
+    new FixedPointNumber(
+      (1 + rewardRatePerRelaychainBlock / 10 ** 18) **
+        Math.max(leaseBlockNumber - currentRelayBlockNumber, 0)
+    )
+  );
 
   return discount;
 };
@@ -98,7 +94,6 @@ const currencyIdToToken = (api, currencyId) => {
 
 module.exports = {
   getLiquidConversionRate,
-  setLiquidConversionRate,
   tokenAmountToHuman,
   crowdloanDotToDot,
   currencyIdToToken,

@@ -1,5 +1,9 @@
-const { Token } = require("@acala-network/sdk-core");
-const { tokenAmountToHuman, crowdloanDotToDot } = require("./utils");
+const { Token, FixedPointNumber } = require("@acala-network/sdk-core");
+const {
+  tokenAmountToHuman,
+  crowdloanDotToDot,
+  getLiquidCrowdloanPrice,
+} = require("./utils");
 const { getApi } = require("./api");
 
 const coingekoTokenToNetwork = {
@@ -24,7 +28,6 @@ const coingekoTokenToNetwork = {
 class Tvl {
   #api;
   #chain;
-  #currentRelayChainBlock;
   #tvl;
 
   constructor(api) {
@@ -36,26 +39,21 @@ class Tvl {
   }
 
   async #getCurrentRelayChainBlock() {
-    if (this.#currentRelayChainBlock) {
-      return (await this.#currentRelayChainBlock).toJSON();
-    }
-
     let relayChainApi;
 
     if (this.#chain === "acala") {
-      relayChainApi = await getApi("kusama");
+      relayChainApi = await getApi("polkadot");
     } else {
       relayChainApi = await getApi("kusama");
     }
 
-    const blockNumber = relayChainApi.query.system.number();
-    this.#currentRelayChainBlock = blockNumber;
+    const blockNumber = (await relayChainApi.query.system.number()).toJSON();
 
-    return (await blockNumber).toJSON();
+    return blockNumber;
   }
 
   addByCurrencyId(currencyId, amount) {
-    amount = Number(amount);
+    amount = new FixedPointNumber(amount);
     // Workaround for typo in acala.js
     if (currencyId["LiquidCrowdloan"]) {
       currencyId = {
@@ -68,7 +66,7 @@ class Tvl {
     );
 
     if (this.#tvl.has(token.symbol)) {
-      this.#tvl.set(token.symbol, this.#tvl.get(token.symbol) + amount);
+      this.#tvl.set(token.symbol, this.#tvl.get(token.symbol).add(amount));
     } else {
       this.#tvl.set(token.symbol, amount);
     }
@@ -86,9 +84,9 @@ class Tvl {
       }
 
       if (symbol === "lc://13") {
-        amount =
-          amount *
-          crowdloanDotToDot(this.#api, await this.#getCurrentRelayChainBlock());
+        amount = amount.mul(
+          crowdloanDotToDot(this.#api, await this.#getCurrentRelayChainBlock())
+        );
       }
 
       const humanAmount = await tokenAmountToHuman(
