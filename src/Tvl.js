@@ -1,9 +1,5 @@
 const { Token, FixedPointNumber } = require("@acala-network/sdk-core");
-const {
-  tokenAmountToHuman,
-  crowdloanDotToDot,
-  getLiquidCrowdloanPrice,
-} = require("./utils");
+const { crowdloanDotToDot, getLiquidConversionRate } = require("./utils");
 const { getApi } = require("./api");
 
 const coingekoTokenToNetwork = {
@@ -30,12 +26,11 @@ class Tvl {
   #chain;
   #tvl;
 
-  constructor(api) {
-    this.#api = api;
+  constructor(chain) {
     this.#tvl = new Map();
 
-    this.#chain =
-      api.consts.system.ss58Prefix.toNumber() === 10 ? "acala" : "karura";
+    this.#api = getApi(chain);
+    this.#chain = chain;
   }
 
   async #getCurrentRelayChainBlock() {
@@ -52,23 +47,11 @@ class Tvl {
     return blockNumber;
   }
 
-  addByCurrencyId(currencyId, amount) {
-    amount = new FixedPointNumber(amount);
-    // Workaround for typo in acala.js
-    if (currencyId["LiquidCrowdloan"]) {
-      currencyId = {
-        liquidcroadloan: currencyId["LiquidCrowdloan"],
-      };
-    }
-
-    const token = Token.fromCurrencyId(
-      this.#api.createType("CurrencyId", currencyId)
-    );
-
-    if (this.#tvl.has(token.symbol)) {
-      this.#tvl.set(token.symbol, this.#tvl.get(token.symbol).add(amount));
+  addToken(symbol, amount) {
+    if (this.#tvl.has(symbol)) {
+      this.#tvl.set(symbol, this.#tvl.get(symbol).add(amount));
     } else {
-      this.#tvl.set(token.symbol, amount);
+      this.#tvl.set(symbol, amount);
     }
   }
 
@@ -85,21 +68,19 @@ class Tvl {
 
       if (symbol === "lc://13") {
         amount = amount.mul(
-          crowdloanDotToDot(this.#api, await this.#getCurrentRelayChainBlock())
+          crowdloanDotToDot(
+            await this.#api,
+            await this.#getCurrentRelayChainBlock()
+          )
         );
+      } else if (symbol === "LKSM" || symbol === "LDOT") {
+        amount = amount.mul(await getLiquidConversionRate(await this.#api));
       }
 
-      const humanAmount = await tokenAmountToHuman(
-        this.#api,
-        this.#chain,
-        symbol,
-        amount
-      );
-
       if (geko[coinGekoNetworkName]) {
-        geko[coinGekoNetworkName] += humanAmount;
+        geko[coinGekoNetworkName] += amount.toNumber();
       } else {
-        geko[coinGekoNetworkName] = humanAmount;
+        geko[coinGekoNetworkName] = amount.toNumber();
       }
     }
 

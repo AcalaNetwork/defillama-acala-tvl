@@ -48,6 +48,7 @@ const getLiquidConversionRate = async (api) => {
 
   const totalIssued = voidLiquid.add(totalActive);
 
+  console.log(totalStaked.div(totalIssued).toString());
   return totalStaked.div(totalIssued);
 };
 
@@ -68,7 +69,7 @@ const tokenAmountToHuman = async (api, chain, tokenSymbol, amount) => {
 
 const crowdloanDotToDot = (api, currentRelayBlockNumber) => {
   const rewardRatePerRelaychainBlock =
-    api.consts?.prices?.rewardRatePerRelaychainBlock?.toNumber() || 0;
+    api.consts.prices.rewardRatePerRelaychainBlock.toNumber() || 0;
   const leaseBlockNumber = ACALA_LEASE_BLOCK;
   const discount = FixedPointNumber.ONE.div(
     new FixedPointNumber(
