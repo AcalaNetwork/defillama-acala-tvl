@@ -1,35 +1,44 @@
 const Tvl = require("./Tvl");
+const { gql, request } = require("graphql-request");
 const { getApi } = require("./api");
+const { FixedPointNumber } = require("@acala-network/sdk-core");
 
 const tvl = async (chain) => {
-  const api = await getApi(chain);
-  const totalTvl = new Tvl(api);
+  const totalTvl = new Tvl(chain);
 
-  const dexPools = await api.query.dex.liquidityPool.entries();
-
-  for (const [pair, numTokens] of dexPools) {
-    const [tokenA, tokenB] = pair.toHuman()[0];
-
-    const _numTokens = numTokens.toJSON();
-
-    totalTvl.addByCurrencyId(tokenA, _numTokens[0]);
-    totalTvl.addByCurrencyId(tokenB, _numTokens[1]);
-  }
-
-  if (api.query.stableAsset) {
-    const stablePools = await api.query.stableAsset.pools.entries();
-    for ([_key, pool] of stablePools) {
-      const poolInfo = pool.toJSON();
-      const assets = poolInfo.assets;
-      const balances = poolInfo.balances;
-
-      for (const assetIndex in assets) {
-        const currencyId = assets[assetIndex];
-        const assetBalance = balances[assetIndex];
-
-        totalTvl.addByCurrencyId(currencyId, assetBalance);
+  const query = gql`
+    query {
+      tokens {
+        nodes {
+          id
+          decimals
+          amount
+        }
       }
     }
+  `;
+
+  const endpoint =
+    chain === "acala"
+      ? "https://api.subquery.network/sq/AcalaNetwork/acala-dex"
+      : "https://api.subquery.network/sq/AcalaNetwork/karura-dex";
+
+  try {
+    const data = await request(endpoint, query);
+
+    data.tokens.nodes.forEach(({ id, decimals, amount }) => {
+      if (id.startsWith("lp")) {
+        return;
+      }
+
+      const tokenAmount = new FixedPointNumber(amount).div(
+        new FixedPointNumber(10 ** decimals)
+      );
+
+      totalTvl.addToken(id, tokenAmount);
+    });
+  } catch (_e) {
+    console.error(`Could not fetch ${chain} dex data`);
   }
 
   return await totalTvl.getCoingeko();

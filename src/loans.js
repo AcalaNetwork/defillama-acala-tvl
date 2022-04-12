@@ -33,7 +33,7 @@ const tvl = async (chain) => {
       totalTvl.addToken(id, tokenAmount);
     });
   } catch (_e) {
-    console.error("Could not fetch data");
+    console.error(`Could not fetch ${chain} loans data`);
   }
 
   return await totalTvl.getCoingeko();

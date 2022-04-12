@@ -37,7 +37,7 @@ const getApi = async (chainName) => {
   } else if (chainName === "kusama") {
     apiOptions = { provider: new WsProvider(KUSAMA_ENDPOINTS) };
   } else {
-    throw "Invalid chain name";
+    throw `Invalid chain name: ${chainName}`;
   }
 
   return await ApiPromise.create(apiOptions);

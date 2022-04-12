@@ -1,9 +1,10 @@
 const Tvl = require("./Tvl");
 const { getApi } = require("./api");
+const { FixedPointNumber } = require("@acala-network/sdk-core");
 
 const tvl = async (chain) => {
   const api = await getApi(chain);
-  const totalTvl = new Tvl(api);
+  const totalTvl = new Tvl(chain);
 
   const ledgers = await api.query.homa.stakingLedgers.entries();
 
@@ -11,9 +12,15 @@ const tvl = async (chain) => {
     const bonded = ledger.toJSON().bonded;
 
     if (chain === "acala") {
-      totalTvl.addByCurrencyId({ Token: "DOT" }, bonded);
+      totalTvl.addToken(
+        "DOT",
+        new FixedPointNumber(bonded).div(new FixedPointNumber(10 ** 10))
+      );
     } else {
-      totalTvl.addByCurrencyId({ Token: "KSM" }, bonded);
+      totalTvl.addToken(
+        "KSM",
+        new FixedPointNumber(bonded).div(new FixedPointNumber(10 ** 12))
+      );
     }
   }
 
