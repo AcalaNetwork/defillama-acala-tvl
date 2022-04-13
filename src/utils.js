@@ -48,7 +48,6 @@ const getLiquidConversionRate = async (api) => {
 
   const totalIssued = voidLiquid.add(totalActive);
 
-  console.log(totalStaked.div(totalIssued).toString());
   return totalStaked.div(totalIssued);
 };
 
