@@ -37,26 +37,22 @@ const getPrices = async (tokens) => {
 };
 
 const main = async () => {
-  console.log("Acala TVL:");
-
   const acalaLoansTvl = await loans.tvl("acala");
-  console.log(`${loans.methodology}:\n`, await getPrices(acalaLoansTvl));
-
   const acalaDexTvl = await dex.tvl("acala");
-  console.log(`${dex.methodology}:\n`, await getPrices(acalaDexTvl));
-
   const acalaStakingTvl = await staking.tvl("acala");
+
+  console.log("Acala TVL:");
+  console.log(`${loans.methodology}:\n`, await getPrices(acalaLoansTvl));
+  console.log(`${dex.methodology}:\n`, await getPrices(acalaDexTvl));
   console.log(`${staking.methodology}:\n`, await getPrices(acalaStakingTvl));
 
-  console.log("Karura TVL:");
-
   const karuraLoansTvl = await loans.tvl("karura");
-  console.log(`${loans.methodology}:\n`, await getPrices(karuraLoansTvl));
-
   const karuraDexTvl = await dex.tvl("karura");
-  console.log(`${dex.methodology}:\n`, await getPrices(karuraDexTvl));
-
   const karuraStakingTvl = await staking.tvl("karura");
+
+  console.log("Karura TVL:");
+  console.log(`${loans.methodology}:\n`, await getPrices(karuraLoansTvl));
+  console.log(`${dex.methodology}:\n`, await getPrices(karuraDexTvl));
   console.log(`${staking.methodology}:\n`, await getPrices(karuraStakingTvl));
 
   process.exit(0);

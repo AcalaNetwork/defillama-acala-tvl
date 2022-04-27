@@ -12,6 +12,8 @@
     "@acala-network/sdk-core": "^4.0.1",
     "@acala-network/sdk-wallet": "^4.0.1",
     "@polkadot/api": "^7.10.1",
-    "coingecko-api": "^1.0.10"
+    "coingecko-api": "^1.0.10",
+    "graphql": "^16.3.0",
+    "graphql-request": "^4.2.0"
   }
 }
