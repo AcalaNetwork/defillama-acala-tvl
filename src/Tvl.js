@@ -19,6 +19,8 @@ const coingekoTokenToNetwork = {
   "lc://13": "polkadot",
   "sa://0": "kusama",
   "fa://0": "rmrk",
+  "fa://2": "quartz",
+  "fa://5": "crust-shadow",
 };
 
 class Tvl {

@@ -2,8 +2,6 @@ const CoinGecko = require("coingecko-api");
 const loans = require("./loans");
 const dex = require("./dex");
 const staking = require("./staking");
-const { getApi } = require("./api");
-const Tvl = require("./Tvl");
 
 const CoinGeckoClient = new CoinGecko();
 
