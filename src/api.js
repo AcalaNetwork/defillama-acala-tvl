@@ -20,9 +20,7 @@ const ACALA_ENDPOINTS = [
 ];
 
 const KARURA_ENDPOINTS = [
-  "wss://karura-rpc-0.aca-api.network",
-  "wss://karura-rpc-1.aca-api.network",
-  "wss://karura-rpc-2.aca-api.network/ws",
+  "wss://karura.api.onfinality.io/public-ws"
 ];
 
 const getApi = async (chainName) => {
@@ -40,7 +38,7 @@ const getApi = async (chainName) => {
     throw `Invalid chain name: ${chainName}`;
   }
 
-  return await ApiPromise.create(apiOptions);
+  return ApiPromise.create(apiOptions);
 };
 
 module.exports = { getApi };
