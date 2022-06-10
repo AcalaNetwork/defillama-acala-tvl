@@ -15,3 +15,4 @@ Scripts for calculating Acala/Karura TVL.
 5. `LP Token Staking TVL`: totalShares of dex tokens in (api.query.rewards.poolInfos);
 6. `Liquidity Pool TVL`: api.query.dex.liquidityPool
 7. `Swap`: lpTokenStakingTvl + liquidityPoolTvl;
+8. `total`: 2 + 3 + 4 + 5 + 6 + LC DOT(ACALA)
