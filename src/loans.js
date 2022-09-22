@@ -17,10 +17,7 @@ const tvl = async (chain) => {
     }
   `;
 
-  const endpoint =
-    chain === "acala"
-      ? "https://api.subquery.network/sq/AcalaNetwork/acala-loans"
-      : "https://api.subquery.network/sq/AcalaNetwork/karura-loan";
+  const endpoint = chain === "acala" ? "https://api.polkawallet.io/acala-loan-subql" : "https://api.polkawallet.io/karura-loan-subql";
 
   try {
     const data = await request(endpoint, query);
